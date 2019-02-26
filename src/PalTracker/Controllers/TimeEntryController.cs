@@ -9,15 +9,19 @@ namespace PalTracker
     public class TimeEntryController : ControllerBase
     {
         private ITimeEntryRepository repo;
+        private readonly IOperationCounter<TimeEntry> counter;
 
-        public TimeEntryController(ITimeEntryRepository repository)
+        public TimeEntryController(ITimeEntryRepository repository, IOperationCounter<TimeEntry> counter)
         {
                 repo = repository;
+                this.counter = counter;
         }
 
         [HttpGet("{id}", Name= "GetTimeEntry")]
         public IActionResult Read(long id)
         {
+            counter.Increment(TrackedOperation.Read);
+
             TimeEntry timeEntry;
 
            if (repo.Contains(id))
@@ -35,6 +39,7 @@ namespace PalTracker
         [HttpGet]
         public IActionResult List()
         {
+            counter.Increment(TrackedOperation.List);
 			var listTimeEntries = new OkObjectResult(repo.List())
 			{ StatusCode = (int)HttpStatusCode.OK };
 
@@ -45,6 +50,7 @@ namespace PalTracker
         [HttpPost]
         public IActionResult Create([FromBody] TimeEntry timeEntry)
         {
+            counter.Increment(TrackedOperation.Create);
             TimeEntry timeEntryCreated;
 
           
@@ -55,6 +61,7 @@ namespace PalTracker
         [HttpPut("{id}")]
         public IActionResult Update(long id, [FromBody] TimeEntry timeEntry)
         {
+            counter.Increment(TrackedOperation.Update);
 			TimeEntry updatedTimeEntry;
 			if (!repo.Contains(id))
 			{
@@ -67,6 +74,7 @@ namespace PalTracker
         [HttpDelete("{id}")]
         public IActionResult Delete(long id)
         {
+            counter.Increment(TrackedOperation.Delete);
             if (id==0)
 			{
 				return BadRequest();

@@ -12,6 +12,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Steeltoe.CloudFoundry.Connector.MySql.EFCore;
+using Steeltoe.Common.HealthChecks;
+using Steeltoe.Management.CloudFoundry;
+using Steeltoe.Management.Endpoint.Info;
 
 namespace PalTracker
 {
@@ -36,10 +39,14 @@ namespace PalTracker
                Configuration.GetValue<string>("CF_INSTANCE_INDEX", "CF_INSTANCE_INDEX not configured."),
                Configuration.GetValue<string>("CF_INSTANCE_ADDR", "CF_INSTANCE_ADDR not configured.")
                ));
+            services.AddCloudFoundryActuators(Configuration);
 
-               services.AddDbContext<TimeEntryContext>(options=> options.UseMySql(Configuration));
+            services.AddDbContext<TimeEntryContext>(options => options.UseMySql(Configuration));
             //services.AddSingleton<ITimeEntryRepository, InMemoryTimeEntryRepository>();
             services.AddScoped<ITimeEntryRepository, MySqlTimeEntryRepository>();
+            services.AddScoped<IHealthContributor, TimeEntryHealthContributor>();
+            services.AddSingleton<IOperationCounter<TimeEntry>, OperationCounter<TimeEntry>>();
+            services.AddSingleton<IInfoContributor, TimeEntryInfoContributor>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -56,6 +63,7 @@ namespace PalTracker
             app.UseStatusCodePages();
             app.UseHttpsRedirection();
             app.UseMvc();
+            app.UseCloudFoundryActuators();
         }
     }
 }
