@@ -14,6 +14,8 @@ namespace PalTrackerTests
 
         public MySqlTimeEntryRepositoryTest()
         {
+            Environment.SetEnvironmentVariable("MYSQL__CLIENT__CONNECTIONSTRING", DbTestSupport.TestDbConnectionString);
+            DbTestSupport.ExecuteSql("TRUNCATE TABLE time_entries");
             DbTestSupport.ExecuteSql("TRUNCATE TABLE time_entries");
 
             var builder = new DbContextOptionsBuilder<TimeEntryContext>()

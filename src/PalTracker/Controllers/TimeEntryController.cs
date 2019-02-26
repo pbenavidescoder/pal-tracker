@@ -8,11 +8,11 @@ namespace PalTracker
     [Route("time-entries")]
     public class TimeEntryController : ControllerBase
     {
-        private ITimeEntryRepository _inMemoryTimeEntryRepository;
+        private ITimeEntryRepository repo;
 
-        public TimeEntryController(ITimeEntryRepository inMemoryTimeEntryRepository)
+        public TimeEntryController(ITimeEntryRepository repository)
         {
-                _inMemoryTimeEntryRepository = inMemoryTimeEntryRepository;
+                repo = repository;
         }
 
         [HttpGet("{id}", Name= "GetTimeEntry")]
@@ -20,9 +20,9 @@ namespace PalTracker
         {
             TimeEntry timeEntry;
 
-           if (_inMemoryTimeEntryRepository.Contains(id))
+           if (repo.Contains(id))
            {
-               timeEntry=_inMemoryTimeEntryRepository.Find(id);
+               timeEntry=repo.Find(id);
                
                return Ok(timeEntry);
            }
@@ -35,7 +35,7 @@ namespace PalTracker
         [HttpGet]
         public IActionResult List()
         {
-			var listTimeEntries = new OkObjectResult(_inMemoryTimeEntryRepository.List())
+			var listTimeEntries = new OkObjectResult(repo.List())
 			{ StatusCode = (int)HttpStatusCode.OK };
 
 			return listTimeEntries;
@@ -48,7 +48,7 @@ namespace PalTracker
             TimeEntry timeEntryCreated;
 
           
-            timeEntryCreated=_inMemoryTimeEntryRepository.Create(timeEntry);
+            timeEntryCreated=repo.Create(timeEntry);
             return CreatedAtRoute("GetTimeEntry", new {id = timeEntryCreated.Id}, timeEntryCreated);
         }
 
@@ -56,11 +56,11 @@ namespace PalTracker
         public IActionResult Update(long id, [FromBody] TimeEntry timeEntry)
         {
 			TimeEntry updatedTimeEntry;
-			if (!_inMemoryTimeEntryRepository.Contains(id))
+			if (!repo.Contains(id))
 			{
 				return NotFound();
 			}
-			updatedTimeEntry =_inMemoryTimeEntryRepository.Update(id, timeEntry);
+			updatedTimeEntry =repo.Update(id, timeEntry);
 			return new OkObjectResult(updatedTimeEntry);
         }
 
@@ -71,9 +71,9 @@ namespace PalTracker
 			{
 				return BadRequest();
 			}
-			if (_inMemoryTimeEntryRepository.Contains(id))
+			if (repo.Contains(id))
 			{
-				_inMemoryTimeEntryRepository.Delete(id);
+				repo.Delete(id);
 				return NoContent();
 			}
 			else
